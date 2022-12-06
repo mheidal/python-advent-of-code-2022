@@ -1,15 +1,11 @@
 
 def find_index_of_unique_character_set(threshold: int) -> int:
     with open(f"../inputs/day_06.txt", 'r') as input_file:
-        buf_index = 0
-        transmission_index = 0
-        buf = [-1] * threshold
         input = input_file.read()
-        while len(set(buf)) < threshold or -1 in buf:
-            buf[buf_index] = input[transmission_index]
-            transmission_index += 1
-            buf_index = ((buf_index + 1) % threshold)
-        return transmission_index
+        for i in range(threshold, len(input), 1):
+            if len(set(input[i-threshold:i])) == threshold:
+                return i
+    return -1
 
 
 def part_1():
