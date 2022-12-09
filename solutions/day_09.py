@@ -1,8 +1,7 @@
-from typing import List, Tuple
+from typing import Tuple
 
 
 def add_tuples(first: Tuple[int, int], second: Tuple[int, int]) -> Tuple[int, int]:
-    """Returns a list where the nth element is the sum of the nth elements of lists a and b."""
     return first[0] + second[0], first[1] + second[1]
 
 
@@ -32,6 +31,7 @@ def get_required_motion(leader: Tuple[int, int], follower: Tuple[int, int]) -> T
                 return -1, -1
     return 0, 0
 
+
 def calculate_knot_positions(rope_len: int):
     knots = [(0, 0) for _ in range(rope_len)]
     knot_position_histories = [{knot} for knot in knots]
@@ -46,10 +46,10 @@ def calculate_knot_positions(rope_len: int):
             direc, dist = line.strip().split(" ")
             for _ in range(int(dist)):
                 knots[0] = add_tuples(knots[0], directions[direc])
-                for i in range(0, rope_len-1):
+                for i in range(0, rope_len - 1):
                     trailing_movement = get_required_motion(knots[i], knots[i + 1])
-                    knots[i+1] = add_tuples(knots[i+1], trailing_movement)
-                    knot_position_histories[i + 1].add(tuple(knots[i + 1]))
+                    knots[i + 1] = add_tuples(knots[i+1], trailing_movement)
+                    knot_position_histories[i + 1].add(knots[i + 1])
     return knot_position_histories
 
 
