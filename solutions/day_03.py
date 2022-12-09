@@ -1,5 +1,3 @@
-
-
 def get_priority(item: str) -> int:
     if (ascii_val := ord(item)) >= 97:
         return ascii_val - 96  # lowercase
@@ -7,11 +5,11 @@ def get_priority(item: str) -> int:
 
 
 def part_1():
-    with open(f"../inputs/day_03.txt", 'r') as input_file:
+    with open(f"../inputs/day_03.txt", "r") as input_file:
         summed_priorities = 0
         for line in input_file.readlines():
-            first_compartment = line[:len(line)//2]
-            second_compartment = line[len(line)//2:]
+            first_compartment = line[: len(line) // 2]
+            second_compartment = line[len(line) // 2 :]
             for item in set(first_compartment):
                 if item in set(second_compartment):
                     summed_priorities += get_priority(item)
@@ -19,7 +17,7 @@ def part_1():
 
 
 def part_2():
-    with open(f"../inputs/day_03.txt", 'r') as input_file:
+    with open(f"../inputs/day_03.txt", "r") as input_file:
         summed_priorities = 0
         elves = input_file.readlines()
         for line_triplet in range(0, len(elves), 3):
@@ -32,6 +30,6 @@ def part_2():
         print(f"Part 2: {summed_priorities}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     part_1()
     part_2()

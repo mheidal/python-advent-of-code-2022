@@ -1,4 +1,3 @@
-
 def get_elves():
     elves = []
     x = open("input.txt", "r").read()
@@ -20,6 +19,6 @@ def part_2():
     print(sum(sorted(elves)[-3:]))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     part_1()
     part_2()

@@ -1,4 +1,3 @@
-
 def get_points_for_match(them, you):
     matchups = {
         "R": {
@@ -29,8 +28,9 @@ def get_shapes_1(line: str):
         "Y": "P",
         "Z": "S",
     }
-    them, you = line.strip().split(' ')
+    them, you = line.strip().split(" ")
     return letter_to_shape[them], letter_to_shape[you]
+
 
 def get_shapes_2(line: str):
     letter_to_shape = {
@@ -39,23 +39,11 @@ def get_shapes_2(line: str):
         "C": "S",
     }
     shape_and_strat_to_shape = {
-        "R": {
-            "X": "S",
-            "Y": "R",
-            "Z": "P"
-        },
-        "P": {
-            "X": "R",
-            "Y": "P",
-            "Z": "S"
-        },
-        "S": {
-            "X": "P",
-            "Y": "S",
-            "Z": "R"
-        },
+        "R": {"X": "S", "Y": "R", "Z": "P"},
+        "P": {"X": "R", "Y": "P", "Z": "S"},
+        "S": {"X": "P", "Y": "S", "Z": "R"},
     }
-    them, you = line.strip().split(' ')
+    them, you = line.strip().split(" ")
     them_shape = letter_to_shape[them]
     return them_shape, shape_and_strat_to_shape[them_shape][you]
 
@@ -67,7 +55,7 @@ def get_points_for_game(strat_func):
         "P": 2,
         "S": 3,
     }
-    with open(f"../inputs/day_02.txt", 'r') as input_file:
+    with open(f"../inputs/day_02.txt", "r") as input_file:
         sum = 0
         for line in input_file.readlines():
             them, you = strat_func(line)
@@ -82,8 +70,8 @@ def part_1():
 
 def part_2():
     get_points_for_game(get_shapes_2)
-        
-        
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     part_1()
     part_2()
