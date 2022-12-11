@@ -7,7 +7,7 @@ class RegisterCycle:
 
     def increment(self):
         self.cycle += 1
-        if (self.cycle -20) % 40 == 0:
+        if (self.cycle - 20) % 40 == 0:
             self.summed_signals += self.cycle * self.register
         crt_pos = (self.cycle - 1) % 40
         if -1 <= (self.register - crt_pos) <= 1:
@@ -15,7 +15,7 @@ class RegisterCycle:
         else:
             self.output += " "
         if crt_pos == 39:
-            self.output += '\n'
+            self.output += "\n"
 
     def add_to_register(self, val: int):
         self.register += val
@@ -32,7 +32,7 @@ def run_instructions() -> RegisterCycle:
             line = line.strip()
             if line != "noop":
                 register_cycle.increment()
-                register_cycle.add_to_register(int(line.split(' ')[1]))
+                register_cycle.add_to_register(int(line.split(" ")[1]))
     return register_cycle
 
 
