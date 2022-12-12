@@ -7,7 +7,16 @@ class Monkey:
     monkeys = []
     master_divisor: int = None
 
-    def __init__(self, items: List[int], div_test: int, operation, id: int, true: int, false: int, div_by_three: bool = True):
+    def __init__(
+        self,
+        items: List[int],
+        div_test: int,
+        operation,
+        id: int,
+        true: int,
+        false: int,
+        div_by_three: bool = True,
+    ):
         self.id = id
         self.inspect_count = 0
         self.items = items
@@ -41,15 +50,24 @@ class Monkey:
 def get_monkey_with_id(id: int) -> Monkey:
     return next(monkey for monkey in Monkey.monkeys if monkey.id == id)
 
+
 def first_number(string: str):
-    return int(re.findall(r'\d+', string)[0])
+    return int(re.findall(r"\d+", string)[0])
+
 
 def part_1():
     with open(f"../inputs/day_11.txt", "r") as input_file:
-        for monkey in input_file.read().split('\n\n'):
-            id_str, items_str, operation_str, test_str, true_str, false_str = monkey.split("\n")
+        for monkey in input_file.read().split("\n\n"):
+            (
+                id_str,
+                items_str,
+                operation_str,
+                test_str,
+                true_str,
+                false_str,
+            ) = monkey.split("\n")
             id = first_number(id_str)
-            items = [int(item) for item in re.findall(r'\d+', items_str)]
+            items = [int(item) for item in re.findall(r"\d+", items_str)]
             operation = eval("lambda old: " + operation_str.split(" = ")[1])
             div_test = first_number(test_str)
             true = first_number(true_str)
@@ -66,12 +84,20 @@ def part_1():
         score *= m.inspect_count
     print(score)
 
+
 def part_2():
     with open(f"../inputs/day_11.txt", "r") as input_file:
-        for monkey in input_file.read().split('\n\n'):
-            id_str, items_str, operation_str, test_str, true_str, false_str = monkey.split("\n")
+        for monkey in input_file.read().split("\n\n"):
+            (
+                id_str,
+                items_str,
+                operation_str,
+                test_str,
+                true_str,
+                false_str,
+            ) = monkey.split("\n")
             id = first_number(id_str)
-            items = [int(item) for item in re.findall(r'\d+', items_str)]
+            items = [int(item) for item in re.findall(r"\d+", items_str)]
             operation = eval("lambda old: " + operation_str.split(" = ")[1])
             div_test = first_number(test_str)
             true = first_number(true_str)
