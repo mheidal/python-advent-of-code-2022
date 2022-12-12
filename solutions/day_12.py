@@ -44,17 +44,25 @@ def clean_nodes():
     Node.nodes = []
 
 
-
-def dijkstra(start: Node, targets: List[Node], all_nodes: List[Node]):
-    current_node: Node = start
-    while not any([t.visited for t in targets]) and [n for n in all_nodes if not n.visited]:
-        current_node = min([n for n in all_nodes if not n.visited], key=lambda x: x.tentative_distance)
+def dijkstra(targets: List[Node], all_nodes: List[Node]):
+    while not any([t.visited for t in targets]) and [
+        n for n in all_nodes if not n.visited
+    ]:
+        current_node = min(
+            [n for n in all_nodes if not n.visited], key=lambda x: x.tentative_distance
+        )
         for neighbor in current_node.neighbors:
-            neighbor.tentative_distance = min(neighbor.tentative_distance, current_node.tentative_distance + 1)
+            neighbor.tentative_distance = min(
+                neighbor.tentative_distance, current_node.tentative_distance + 1
+            )
         current_node.visited = True
 
 
-def do_search(lo_to_hi: bool, determine_start: Callable[[str], bool], determine_target: Callable[[str], bool]) -> Node:
+def do_search(
+    lo_to_hi: bool,
+    determine_start: Callable[[str], bool],
+    determine_target: Callable[[str], bool],
+) -> Node:
     with open(f"../inputs/day_12.txt", "r") as input_file:
         lines = input_file.readlines()
         Node.max_height = len(lines)
@@ -64,9 +72,9 @@ def do_search(lo_to_hi: bool, determine_start: Callable[[str], bool], determine_
                 Node.max_width = len(line)
             for j, ch in enumerate(line):
                 if ch == "S":
-                    h = ord('a')
+                    h = ord("a")
                 elif ch == "E":
-                    h = ord('z')
+                    h = ord("z")
                 else:
                     h = ord(ch)
                 Node((i, j), h, determine_start(ch), determine_target(ch))
@@ -74,7 +82,7 @@ def do_search(lo_to_hi: bool, determine_start: Callable[[str], bool], determine_
         node.initialize_edges(lo_to_hi)
     start = next(node for node in Node.nodes if node.is_start)
     targets = [node for node in Node.nodes if node.is_end]
-    dijkstra(start, targets, Node.nodes)
+    dijkstra(targets, Node.nodes)
     return next(n for n in Node.nodes if n.is_end and n.visited)
 
 
