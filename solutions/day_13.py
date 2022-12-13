@@ -1,20 +1,21 @@
 import json
 from functools import cmp_to_key
+from typing import Union
 from numpy import sign
 
 
-def get_ordering(el1, el2) -> int:
-    if isinstance(el1, int) and isinstance(el2, int):
-        return sign(el1 - el2)
-    elif isinstance(el1, list) and isinstance(el2, list):
-        min_len = min(len(el1), len(el2))
+def get_ordering(element_1: Union[list, int], element_2: Union[list, int]) -> int:
+    if isinstance(element_1, int) and isinstance(element_2, int):
+        return sign(element_1 - element_2)
+    elif isinstance(element_1, list) and isinstance(element_2, list):
+        min_len = min(len(element_1), len(element_2))
         for i in range(min_len):
-            if (sub_element_ordering := get_ordering(el1[i], el2[i])) != 0:
+            if (sub_element_ordering := get_ordering(element_1[i], element_2[i])) != 0:
                 return sub_element_ordering
-        return sign(len(el1) - len(el2))
+        return sign(len(element_1) - len(element_2))
     return get_ordering(
-        [el1] if isinstance(el1, int) else el1,
-        [el2] if isinstance(el2, int) else el2,
+        [element_1] if isinstance(element_1, int) else element_1,
+        [element_2] if isinstance(element_2, int) else element_2,
     )
 
 
