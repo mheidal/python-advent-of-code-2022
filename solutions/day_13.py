@@ -22,7 +22,10 @@ def get_ordering(element_1: Union[list, int], element_2: Union[list, int]) -> in
 def part_1():
     sum_of_correct_indices = 0
     with open(f"../inputs/day_13.txt", "r") as input_file:
-        pairs = [[json.loads(packet) for packet in pair.split('\n')] for pair in input_file.read().split("\n\n")]
+        pairs = [
+            [json.loads(packet) for packet in pair.split("\n")]
+            for pair in input_file.read().split("\n\n")
+        ]
         for i, pair in enumerate(pairs):
             a, b = pair
             if get_ordering(a, b) == -1:
@@ -31,13 +34,12 @@ def part_1():
 
 
 def part_2():
-    sentinel_vals = [
-        [[2]],
-        [[6]]
-    ]
+    sentinel_vals = [[[2]], [[6]]]
     sentinel_product = 1
     with open(f"../inputs/day_13.txt", "r") as input_file:
-        lines = [json.loads(line.strip()) for line in input_file.readlines() if line != "\n"]
+        lines = [
+            json.loads(line.strip()) for line in input_file.readlines() if line != "\n"
+        ]
         lines.extend(sentinel_vals)
         sorted_lines = sorted(lines, key=cmp_to_key(get_ordering))
         for i, line in enumerate(sorted_lines):
