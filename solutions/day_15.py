@@ -1,38 +1,38 @@
 import re
-from typing import Tuple, Set, List
-import tqdm
+from typing import Tuple, Set, List, NamedTuple
 
 
-Point = Tuple[int, int]  # x,y coords
-Range = Tuple[int, int]  # start, end coords in one dimension
+class Point(NamedTuple):
+    x: int
+    y: int
+
+
+class Range(NamedTuple):
+    start: int
+    end: int
+
+
+class Line(NamedTuple):
+    m: float
+    b: float
 
 
 def manhattan(a: Point, b: Point) -> int:
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+    return abs(a.x - b.x) + abs(a.y - b.y)
 
 
-def generate_manhattan_coverage(sensor: Point, beacon: Point) -> Set[Point]:
-    coverage = set()
-    manhattan_distance = manhattan(sensor, beacon)
-    for y in range(-2 * manhattan_distance + sensor[1], 2 * manhattan_distance + sensor[1]):
-        for x in range(-2 * manhattan_distance + sensor[0], 2 * manhattan_distance + sensor[0]):
-            if manhattan(sensor, (x, y)) <= manhattan_distance:
-                coverage.add((x, y))
-    return coverage
-
-
-def intersect(a: Range, b: Range):
-    return not (a[1] < b[0] or a[0] > b[1])
+def ranges_overlap(a: Range, b: Range) -> bool:
+    return not (a.end < b.start or a.start > b.end)
 
 
 def combine_ranges(ranges: List[Range]):
-    new_ranges = []
+    new_ranges: List[Range] = []
     r_0 = ranges.pop(0)
     while len(ranges) > 1:
         r_1 = ranges.pop(0)
         was_consumed: bool = False
-        while intersect(r_0, r_1):
-            r_0 = (min(r_0[0], r_1[0]), max(r_0[1], r_1[1]))
+        while ranges_overlap(r_0, r_1):
+            r_0 = Range(min(r_0.start, r_1.start), max(r_0.end, r_1.end))
             if ranges:
                 r_1 = ranges.pop(0)
             else:
@@ -53,8 +53,8 @@ def part_1():
     with open(f"../inputs/day_15.txt", "r") as input_file:
         for line in input_file:
             sensor_x, sensor_y, beacon_x, beacon_y = map(int, re.findall("-?\d+", line))
-            sensor = (sensor_x, sensor_y)
-            beacon = (beacon_x, beacon_y)
+            sensor = Point(sensor_x, sensor_y)
+            beacon = Point(beacon_x, beacon_y)
             sensor_beacons.add((sensor, beacon))
             beacons.add(beacon)
 
@@ -64,37 +64,70 @@ def part_1():
         row = 2000000
     ranges: List[Range] = []
     for sensor, beacon in sensor_beacons:
-        if (m_dist := manhattan(sensor, beacon)) >= (dist_to_row := abs(row-sensor[1])):
+        if (m_dist := manhattan(sensor, beacon)) >= (
+            dist_to_row := abs(row - sensor.y)
+        ):
             flex_along_row = abs(m_dist - dist_to_row)
-            cov_along_row = (sensor[0] - flex_along_row, sensor[0] + flex_along_row)
-            print(f"Sensor is at {sensor}\n\tmanhattan reach of {m_dist}\n\tdistance to row of {dist_to_row}\n\tcoverage along row of {flex_along_row}\n\trange is {cov_along_row}, length {cov_along_row[1]-cov_along_row[0]+1}")
+            cov_along_row = Range(sensor.x - flex_along_row, sensor.x + flex_along_row)
             ranges.append(cov_along_row)
-            ranges = sorted(ranges, key=lambda range_: range_[0])
+            ranges = sorted(ranges, key=lambda r: r.start)
 
     ranges = combine_ranges(ranges)
-    print(ranges)
 
     count = 0
     for r in ranges:
-        count += r[1] + 1 - r[0]
-    count -= len([beacon for beacon in beacons if beacon[1] == row])
+        count += r.end + 1 - r.start
+    count -= len([beacon for beacon in beacons if beacon.y == row])
     print(count)
 
 
+def line_intersection(line_1: Line, line_2: Line) -> Point:
+    x = (line_1.b - line_2.b) / (line_2.m - line_1.m)
+    y = line_1.m * x + line_1.b
+    return Point(round(x), round(y))
 
 
 def part_2():
+    lines: Set[Line] = set()
     with open(f"../inputs/day_15.txt", "r") as input_file:
         for line in input_file:
             sensor_x, sensor_y, beacon_x, beacon_y = map(int, re.findall("-?\d+", line))
-            sensor = (sensor_x, sensor_y)
-            beacon = (beacon_x, beacon_y)
-            # plug each of these lines into Desmos graphing calculator
-            # solve via visual inspection
-            # real solution (todo): find the boundary lines of each manhattan box (which are squares rotated 45 deg)
-            # there should be two pairs of lines; each pair is notable because the two elements of the pair are sqrt(2)/2 apart
-            # point is at the intersection of the bottom two of those plus one in y direction
-            print(rf"abs(x-{sensor_x}) + abs(y-{sensor_y}) < {manhattan(sensor, beacon)}")
+            sensor = Point(sensor_x, sensor_y)
+            beacon = Point(beacon_x, beacon_y)
+            dist = manhattan(sensor, beacon)
+            points: List[Point] = [
+                Point(sensor.x + dist, sensor.y),
+                Point(sensor.x - dist, sensor.y),
+                Point(sensor.x, sensor.y + dist),
+                Point(sensor.x, sensor.y - dist),
+            ]
+            for a, b in [(a, b) for i, a in enumerate(points) for b in points[i + 1 :]]:
+                if not a.x == b.x and not a.y == b.y:
+                    m = (a.x - b.x) / (a.y - b.y)
+                    b = a.y - m * a.x
+                    lines.add(Line(m, b))
+
+    line_pairs: Set[Tuple[Line, Line]] = set()
+
+    for line_1 in lines:
+        for line_2 in lines:
+            if line_1 is not line_2:
+                if (
+                    line_1.m == line_2.m
+                    and abs(line_1.b - line_2.b) == 2
+                    and line_1.b != line_2.b
+                ):
+                    by_b = lambda x: x.b
+                    line_pairs.add(
+                        (min(line_1, line_2, key=by_b), max(line_1, line_2, key=by_b))
+                    )
+
+    pairs: List[Tuple[Line, Line]] = sorted(list(line_pairs), key=lambda x: x[0].b)
+    intersection: Point = line_intersection(
+        pairs[0][1], pairs[1][0]
+    )  # intersection of lower line from each pair
+    print(intersection.x * 4_000_000 + intersection.y)
+
 
 if __name__ == "__main__":
     part_1()
