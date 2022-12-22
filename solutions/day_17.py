@@ -43,28 +43,9 @@ def part_1():
         directions = input_file.read()
     directions_index: int = 0
     occupied_spaces: Set[Tuple[int, int]] = {(i, 0) for i in range(-2, 5)}
-    previous_peak_shapes = defaultdict(list)
     heights_at_alignments: Dict[int, int] = {}
     max_height = 0
-    end_point: int = -1
-    forecasted_height: int
-    for i in range(100000000):
-        if i % 10000 == 0:
-            print(i)
-        if end_point != -1:
-            if i >= end_point:
-                break
-        if i % len(directions) == 0 and end_point == -1:
-            peak_shape = tuple(set_from_above(occupied_spaces))
-            if peak_shape in previous_peak_shapes:
-                print(f"Repeat: {i} matches {previous_peak_shapes[peak_shape]}")
-            previous_peak_shapes[peak_shape].append(i)
-            if len(previous_peak_shapes[peak_shape]) >= 3:
-                if (delta := previous_peak_shapes[peak_shape][-1] - previous_peak_shapes[peak_shape][-2]) == previous_peak_shapes[peak_shape][-2] - previous_peak_shapes[peak_shape][-3]:
-                    if (delta % len(shapes)) == 0:
-                        print(f"\tLOOK HERE: {previous_peak_shapes[peak_shape]} all have a gap of {delta}")
-                        forecasted_height = ((10 ** 12 - previous_peak_shapes[peak_shape][-3]) // delta) * (heights_at_alignments[previous_peak_shapes[peak_shape][-2] - previous_peak_shapes[peak_shape][-3]])
-                        end_point = (10 ** 12 - previous_peak_shapes[peak_shape][-3]) % delta + i
+    for i in range(2022):
         current = copy(shapes[shapes_index % len(shapes)])
         shapes_index += 1
         current = add_to_piece(current, (0, max_height + 4))
@@ -83,7 +64,8 @@ def part_1():
             if any([part[1] < 1 for part in lower]) or any([part in occupied_spaces for part in lower]):
                 for part in current:
                     occupied_spaces.add(part)
-                # clean up occupied spaces, we only need stuff above the lowest column peak
+                # clean up occupied spaces, we only need stuff above the lowest column peak (only so often to minimize
+                # cost of cleanup)
                 lst = []
                 do_trim: bool = True
                 if i % 50 == 0:
@@ -101,7 +83,7 @@ def part_1():
             else:
                 current = lower
 
-    print(f"Forecasted height is {max_height + forecasted_height}")
+    print(f"Height is {max_height}")
 
 
 
