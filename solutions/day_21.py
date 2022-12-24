@@ -47,7 +47,7 @@ class Monkey:
     def add_children(self, all_monkeys: Dict[str, Any]) -> None:
         """
         Adds references to other monkeys which this monkey depends on.
-        :param all_monkeys:
+        :param all_monkeys: Dict of monkey names to Monkey objects.
         :return:
         """
         if not self.left_name:
@@ -55,7 +55,7 @@ class Monkey:
         self.left = all_monkeys[self.left_name]
         self.right = all_monkeys[self.right_name]
 
-    def ready_to_resolve_from_below(self) -> bool:
+    def ready_to_resolve(self) -> bool:
         """
         Whether the monkey is ready to resolve given the statuses of its children.
         Resolution is assigning a value to the monkey based on its children and operation.
@@ -72,7 +72,7 @@ class Monkey:
                 and self.right.resolved
         )
 
-    def resolve_from_below(self) -> None:
+    def resolve(self) -> None:
         """
         Assign a val to this monkey based on its operation and the values of the monkeys it depends on.
         If it depends on no monkeys, its operation just returns a number.
@@ -81,23 +81,12 @@ class Monkey:
         self.resolved = True
         self.val = self.op(self.left.val, self.right.val)
 
-    def unresolve(self):
-        """Should only be applied to humn."""
-        self.resolved = False
-        self.val = None
-
     def assign_depth(self, depth: int):
         """For troubleshooting purposes."""
         self.depth = depth
         if self.left is not None:
             self.left.assign_depth(depth + 1)
             self.right.assign_depth(depth + 1)
-
-    def __repr__(self):
-        s = f"{self.name} | val: {self.val}"
-        if self.operation_symbol:
-            s += f" | op: {self.operation_symbol}"
-        return s
 
 
 def set_up_monkeys() -> Tuple[List[str], Dict[str, Monkey]]:
@@ -136,11 +125,9 @@ def set_up_monkeys() -> Tuple[List[str], Dict[str, Monkey]]:
 def part_1():
     names, monkeys = set_up_monkeys()
     # resolve all monkeys
-    while any(not monkeys[m].resolved for m in names):
-        for name in names:
-            monkey = monkeys[name]
-            if monkey.ready_to_resolve_from_below():
-                monkey.resolve_from_below()
+    for name in names:
+        if monkeys[name].ready_to_resolve():
+            monkeys[name].resolve()
     print(monkeys['root'].val)
 
 
@@ -148,46 +135,13 @@ def part_2():
     names, monkeys = set_up_monkeys()
     # humn is
     monkeys['humn'].val = 1j
-    while any(not monkeys[m].resolved for m in names):
-        for name in names:
-            monkey = monkeys[name]
-            if monkey.ready_to_resolve_from_below():
-                monkey.resolve_from_below()
+    for name in names:
+        if monkeys[name].ready_to_resolve():
+            monkeys[name].resolve()
     root = monkeys['root']
     unresolved = root.left.val if root.left.val.imag != 0 else root.right.val
     resolved = root.left.val if unresolved == root.right.val else root.right.val
     print((resolved - unresolved.real) / unresolved.imag)
-    # monkeys['humn'].unresolve()
-    # root = monkeys['root']
-    # root.operation_symbol = "="
-    # # progressively resolve until all monkeys are resolved except those in the chain from humn to root
-    # num_changed = -1
-    # while num_changed != 0:
-    #     num_changed = 0
-    #     for name in names:
-    #         monkey = monkeys[name]
-    #         if monkey.ready_to_resolve_from_below():
-    #             monkey.resolve_from_below()
-    #             num_changed += 1
-    # parent = root
-    # requirement = root.left.val if root.left.resolved else root.right.val
-    # while parent.name != "humn":
-    #     resolved_child = parent.left if parent.left.resolved else parent.right
-    #     new_requirement = parent.inv_op(requirement, resolved_child.val)
-    #     req_str = str(requirement)
-    #     val_str = str(resolved_child.val)
-    #     new_str = str(new_requirement)
-    #     max_len = max(len(req_str), len(val_str), len(new_str)) + 2
-    #     print(f"Depth {resolved_child.depth}: parent is {parent}\n"
-    #           f"{req_str.rjust(max_len, ' ')}  (previous required value)\n"
-    #           f"{Monkey.symbol_to_inv[parent.operation_symbol]}{val_str.rjust(max_len - 1, ' ')}  (resolved child)\n"
-    #           f"{'-' * max_len}\n"
-    #           f"{new_str.rjust(max_len, ' ')} (next required value)\n")
-    #     if new_requirement != int(new_requirement):
-    #         raise ValueError
-    #     requirement = new_requirement
-    #     parent = parent.left if resolved_child is parent.right else parent.right
-    # print(requirement)
 
 
 if __name__ == "__main__":
