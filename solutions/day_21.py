@@ -2,11 +2,19 @@ from typing import List, Tuple, Dict, Any
 
 
 class Monkey:
-    symbol_to_inv = {"+": "-", "-": "+", "*": "/", "/": "*", "=": "="}
+    symbol_to_inv = {
+        "+": "-",
+        "-": "+",
+        "*": "/",
+        "/": "*",
+        "=": "=",
+    }
 
     def __init__(self, name: str, left_name: str, right_name: str, op_symbol: str):
         self.name: str = name
-        if op_symbol in "+-*/":  # Monkeys which depend on other monkeys have a reference to their math operation.
+        if (
+            op_symbol in "+-*/"
+        ):  # Monkeys which depend on other monkeys have a reference to their math operation.
             self.operation_symbol = op_symbol
             self.resolved = False
             self.val = None
