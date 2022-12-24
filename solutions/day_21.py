@@ -2,13 +2,7 @@ from typing import List, Tuple, Dict, Any
 
 
 class Monkey:
-    symbol_to_inv = {
-        "+": "-",
-        "-": "+",
-        "*": "/",
-        "/": "*",
-        "=": "="
-    }
+    symbol_to_inv = {"+": "-", "-": "+", "*": "/", "/": "*", "=": "="}
 
     def __init__(self, name: str, left_name: str, right_name: str, op_symbol: str):
         self.name: str = name
@@ -28,7 +22,9 @@ class Monkey:
         self.depth = -1
 
     def op(self, a, b, inv: bool = False):
-        symbol = self.symbol_to_inv[self.operation_symbol] if inv else self.operation_symbol
+        symbol = (
+            self.symbol_to_inv[self.operation_symbol] if inv else self.operation_symbol
+        )
         if symbol == "+":
             return a + b
         elif symbol == "-":
@@ -66,11 +62,7 @@ class Monkey:
 
         if self.left is None:
             return False
-        return (
-                not self.resolved
-                and self.left.resolved
-                and self.right.resolved
-        )
+        return not self.resolved and self.left.resolved and self.right.resolved
 
     def resolve(self) -> None:
         """
@@ -101,7 +93,7 @@ def set_up_monkeys() -> Tuple[List[str], Dict[str, Monkey]]:
     with open(f"../inputs/day_21.txt", "r") as input_file:
         for line in input_file.readlines():
             name, operation = line.strip().split(": ")
-            args = operation.split(' ')
+            args = operation.split(" ")
             if len(args) == 1:
                 op_symbol = args[0]
                 left_name, right_name = None, None
@@ -116,9 +108,14 @@ def set_up_monkeys() -> Tuple[List[str], Dict[str, Monkey]]:
             monkeys[name] = monkey
     for name, monkey in monkeys.items():
         monkey.add_children(monkeys)
-    monkeys['root'].assign_depth(0)
+    monkeys["root"].assign_depth(0)
     # list of names in descending order of depth allows for resolution of monkey values in order
-    names: List[str] = [monkey.name for monkey in sorted(list(monkeys.values()), key=lambda x: x.depth, reverse=True)]
+    names: List[str] = [
+        monkey.name
+        for monkey in sorted(
+            list(monkeys.values()), key=lambda x: x.depth, reverse=True
+        )
+    ]
     return names, monkeys
 
 
@@ -128,17 +125,18 @@ def part_1():
     for name in names:
         if monkeys[name].ready_to_resolve():
             monkeys[name].resolve()
-    print(monkeys['root'].val)
+    print(monkeys["root"].val)
 
 
 def part_2():
     names, monkeys = set_up_monkeys()
-    # humn is
-    monkeys['humn'].val = 1j
+    # set humn to imaginary unit
+    monkeys["humn"].val = 1j
     for name in names:
         if monkeys[name].ready_to_resolve():
             monkeys[name].resolve()
-    root = monkeys['root']
+    root = monkeys["root"]
+    # treat imaginary unit as an algebraic variable and solve for it
     unresolved = root.left.val if root.left.val.imag != 0 else root.right.val
     resolved = root.left.val if unresolved == root.right.val else root.right.val
     print((resolved - unresolved.real) / unresolved.imag)

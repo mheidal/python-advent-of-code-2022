@@ -34,8 +34,8 @@ def part_1():
     shapes_index: int = 0
     shapes = [
         [(0, 0), (1, 0), (2, 0), (3, 0)],  # _
-        [(1, 0), (0, 1), (1, 1), (2, 1), (1, 2), ],  # +
-        [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2), ],  # J
+        [(1, 0), (0, 1), (1, 1), (2, 1), (1, 2),],  # +
+        [ (0, 0), (1, 0), (2, 0), (2, 1), (2, 2),],  # J
         [(0, 0), (0, 1), (0, 2), (0, 3)],  # |
         [(0, 0), (0, 1), (1, 0), (1, 1)],  # o
     ]
@@ -55,13 +55,14 @@ def part_1():
             else:
                 horizontal = add_to_piece(current, (-1, 0))
             directions_index += 1
-            if (
-                    not any([is_out_of_bounds(p) for p in horizontal])
-                    and not any([part in occupied_spaces for part in horizontal])
+            if not any([is_out_of_bounds(p) for p in horizontal]) and not any(
+                [part in occupied_spaces for part in horizontal]
             ):
                 current = horizontal
             lower = add_to_piece(current, (0, -1))
-            if any([part[1] < 1 for part in lower]) or any([part in occupied_spaces for part in lower]):
+            if any([part[1] < 1 for part in lower]) or any(
+                [part in occupied_spaces for part in lower]
+            ):
                 for part in current:
                     occupied_spaces.add(part)
                 # clean up occupied spaces, we only need stuff above the lowest column peak (only so often to minimize
@@ -76,7 +77,9 @@ def part_1():
                         lst.append(max(subset))
                     if do_trim:
                         min_y = min(lst, key=lambda x: x[1])[1]
-                        occupied_spaces = {space for space in occupied_spaces if space[1] >= min_y}
+                        occupied_spaces = {
+                            space for space in occupied_spaces if space[1] >= min_y
+                        }
                 max_height = max(occupied_spaces, key=lambda x: x[1])[1]
                 heights_at_alignments[i] = max_height
                 break
@@ -84,7 +87,6 @@ def part_1():
                 current = lower
 
     print(f"Height is {max_height}")
-
 
 
 def part_2():

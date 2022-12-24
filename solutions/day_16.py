@@ -68,7 +68,7 @@ def connect_valves():
 
 
 def get_value_skipping_alone(
-        current: Valve, to_visit: List[str], time_remaining: int
+    current: Valve, to_visit: List[str], time_remaining: int
 ) -> int:
     if not to_visit:
         return 0
@@ -92,12 +92,12 @@ def get_target_sets(lst: List, num_workers: int):
 
 
 async def pair_get_value(
-        workers: List[Worker],
-        to_visit: List[str],
-        time_remaining: int,
-        targets_to_assign: List[Tuple[str, int]],
-        already_opened: List[str],
-        depth: int,
+    workers: List[Worker],
+    to_visit: List[str],
+    time_remaining: int,
+    targets_to_assign: List[Tuple[str, int]],
+    already_opened: List[str],
+    depth: int,
 ) -> Tuple[int, List[Action]]:
     # copy of the workers (copied to not interfere with previous worker objects in recursion)
     next_workers = [worker.provide_copy() for worker in workers]
@@ -121,15 +121,15 @@ async def pair_get_value(
     first_worker = min(next_workers, key=lambda x: x.current_valve.id + x.target)
     second_worker = max(next_workers, key=lambda x: x.current_valve.id + x.target)
     unique_key = (
-            first_worker.current_valve.id
-            + ":"
-            + first_worker.target
-            + ":"
-            + second_worker.current_valve.id
-            + ":"
-            + second_worker.target
-            + ":"
-            + str(next_to_visit)
+        first_worker.current_valve.id
+        + ":"
+        + first_worker.target
+        + ":"
+        + second_worker.current_valve.id
+        + ":"
+        + second_worker.target
+        + ":"
+        + str(next_to_visit)
     )
     # if key exists in memoized paths, then this path has already been investigated
     # so we can just return that
@@ -189,7 +189,7 @@ async def pair_get_value(
             worker.current_valve = all_valves[
                 worker.current_valve.map_to_valves[worker.target][
                     time_to_next_opening - 1
-                    ]
+                ]
             ]
 
     # recurse
@@ -202,7 +202,11 @@ async def pair_get_value(
     )
     # record full details of this action, adding future results, memoize that
     value_of_this_action = sum(value_of_valves_opening_now) * next_timestamp
-    this_action: Action = (time_to_next_opening, sum(value_of_valves_opening_now), this_action_items)
+    this_action: Action = (
+        time_to_next_opening,
+        sum(value_of_valves_opening_now),
+        this_action_items,
+    )
     future_history: List[Action] = [this_action, *continued_paths]
     async with lock:
         if (x := len(memoized_paths)) % 100 == 0:
@@ -218,11 +222,11 @@ async def pair_get_value(
 
 
 async def pair_do_targeting(
-        workers: List[Worker],
-        to_visit: List[str],
-        time_remaining: int,
-        already_opened: List[str],
-        depth: int = 0,
+    workers: List[Worker],
+    to_visit: List[str],
+    time_remaining: int,
+    already_opened: List[str],
+    depth: int = 0,
 ) -> Tuple[int, List[Action]]:
     # if no worker has a target and no targets remain, all value has been extracted from this branch
     if not to_visit and not [w for w in workers if w.target]:
@@ -238,14 +242,21 @@ async def pair_do_targeting(
             for target_1 in to_visit:
                 for target_2 in to_visit:
                     if not target_1 == target_2:
-                        tasks.append(aio.create_task(pair_get_value(
-                            copy(workers),
-                            copy(to_visit),
-                            time_remaining,
-                            [(target_1, workers[0].id), (target_2, workers[1].id)],
-                            copy(already_opened),
-                            depth + 1,
-                        )))
+                        tasks.append(
+                            aio.create_task(
+                                pair_get_value(
+                                    copy(workers),
+                                    copy(to_visit),
+                                    time_remaining,
+                                    [
+                                        (target_1, workers[0].id),
+                                        (target_2, workers[1].id),
+                                    ],
+                                    copy(already_opened),
+                                    depth + 1,
+                                )
+                            )
+                        )
             results = await aio.gather(*tasks)
             values.extend(results)
 
@@ -264,14 +275,16 @@ async def pair_do_targeting(
         if to_visit:
             tasks = []
             for target in to_visit:
-                values.append(await pair_get_value(
-                    workers,
-                    to_visit,
-                    time_remaining,
-                    [(target, next(w for w in workers if not w.target).id)],
-                    already_opened,
-                    depth + 1
-                ))
+                values.append(
+                    await pair_get_value(
+                        workers,
+                        to_visit,
+                        time_remaining,
+                        [(target, next(w for w in workers if not w.target).id)],
+                        already_opened,
+                        depth + 1,
+                    )
+                )
             #     tasks.append(aio.create_task(pair_get_value(
             #         copy(workers),
             #         copy(to_visit),
@@ -323,7 +336,6 @@ def part_1():
     print(get_value_skipping_alone(start, to_visit, time_remaining))
 
 
-# unsure if part 2 works, takes a while to run
 def part_2():
     set_up_valves()
     start = all_valves["AA"]
@@ -331,9 +343,9 @@ def part_2():
     to_visit = [vid for vid, valve in all_valves.items() if valve.flow_rate > 0]
     already_opened = []
     time_remaining = 26
-    value, action_history = aio.run(pair_do_targeting(
-        workers, to_visit, time_remaining, already_opened
-    ))
+    value, action_history = aio.run(
+        pair_do_targeting(workers, to_visit, time_remaining, already_opened)
+    )
     print(value)
     print(f"Memoized {len(memoized_paths)} paths.")
     print(f"Consulted {times_consulted} times.")
@@ -354,7 +366,6 @@ all_valves: Dict[str, Valve] = {}
 memoized_paths: Dict[str, List[Action]] = {}
 times_consulted: int = 0
 lock = aio.Lock()
-# start_time = time.time()
 
 if __name__ == "__main__":
     # part_1()
