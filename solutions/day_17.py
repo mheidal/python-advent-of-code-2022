@@ -54,7 +54,11 @@ def let_n_pieces_fall(n: int):
         current = copy(shapes[shapes_index])
         shapes_index = (shapes_index + 1) % len(shapes)
         current = add_to_piece(current, (0, max_height + 4))
-        this_start_state = (tuple(set_from_above(occupied_spaces)), shapes_index, directions_index)
+        this_start_state = (
+            tuple(set_from_above(occupied_spaces)),
+            shapes_index,
+            directions_index,
+        )
         if not cycle_discovered and this_start_state in previous_starts:
             cycle_discovered = True
             cycle_start, prev_max_height = previous_starts[this_start_state]
@@ -63,7 +67,9 @@ def let_n_pieces_fall(n: int):
             remaining_complete_cycles = (n - i) // cycle_len
             vertical_offset = cycle_height * remaining_complete_cycles
             max_height += vertical_offset
-            occupied_spaces = {(space[0], space[1] + vertical_offset) for space in occupied_spaces}
+            occupied_spaces = {
+                (space[0], space[1] + vertical_offset) for space in occupied_spaces
+            }
             current = add_to_piece(current, (0, vertical_offset))
             i += remaining_complete_cycles * cycle_len
         else:

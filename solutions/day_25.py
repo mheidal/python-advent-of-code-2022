@@ -19,14 +19,7 @@ def snafu_to_dec(s: str) -> int:
 def dec_to_snafu(dec: int) -> str:
     pental_digits = []
     s = ""
-    mappings = {
-        0: "0",
-        1: "1",
-        2: "2",
-        3: "=",
-        4: "-",
-        5: "0"
-    }
+    mappings = {0: "0", 1: "1", 2: "2", 3: "=", 4: "-", 5: "0"}
     while dec:
         pental_digits.append(dec % 5)
         dec //= 5
