@@ -30,66 +30,8 @@ def set_from_above(s: Set[IntTuple]) -> List[IntTuple]:
     return lst
 
 
-def part_1():
-    shapes_index: int = 0
-    shapes = [
-        [(0, 0), (1, 0), (2, 0), (3, 0)],  # _
-        [(1, 0), (0, 1), (1, 1), (2, 1), (1, 2)],  # +
-        [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2)],  # J
-        [(0, 0), (0, 1), (0, 2), (0, 3)],  # |
-        [(0, 0), (0, 1), (1, 0), (1, 1)],  # o
-    ]
-    with open(f"../inputs/day_17.txt", "r") as input_file:
-        directions = input_file.read()
-    directions_index: int = 0
-    occupied_spaces: Set[Tuple[int, int]] = {(i, 0) for i in range(-2, 5)}
-    heights_at_alignments: Dict[int, int] = {}
-    max_height = 0
-    for i in range(2022):
-        current = copy(shapes[shapes_index % len(shapes)])
-        shapes_index += 1
-        current = add_to_piece(current, (0, max_height + 4))
-        while True:
-            if directions[directions_index % len(directions)] == ">":
-                horizontal = add_to_piece(current, (1, 0))
-            else:
-                horizontal = add_to_piece(current, (-1, 0))
-            directions_index += 1
-            if not any([is_out_of_bounds(p) for p in horizontal]) and not any(
-                [part in occupied_spaces for part in horizontal]
-            ):
-                current = horizontal
-            lower = add_to_piece(current, (0, -1))
-            if any([part[1] < 1 for part in lower]) or any(
-                [part in occupied_spaces for part in lower]
-            ):
-                for part in current:
-                    occupied_spaces.add(part)
-                # clean up occupied spaces, we only need stuff above the lowest column peak (only so often to minimize
-                # cost of cleanup)
-                lst = []
-                do_trim: bool = True
-                if i % 50 == 0:
-                    for j in range(-2, 5):
-                        subset = {q for q in occupied_spaces if q[0] == j}
-                        if not subset:
-                            do_trim = False
-                        lst.append(max(subset))
-                    if do_trim:
-                        min_y = min(lst, key=lambda x: x[1])[1]
-                        occupied_spaces = {
-                            space for space in occupied_spaces if space[1] >= min_y
-                        }
-                max_height = max(occupied_spaces, key=lambda x: x[1])[1]
-                heights_at_alignments[i] = max_height
-                break
-            else:
-                current = lower
+def let_n_pieces_fall(n: int):
 
-    print(f"Height is {max_height}")
-
-
-def part_2():
     shapes_index: int = 0
     shapes = [
         [(0, 0), (1, 0), (2, 0), (3, 0)],  # _
@@ -108,7 +50,7 @@ def part_2():
     cycle_discovered = False
 
     i = 0
-    while i < 10**12:
+    while i < n:
         current = copy(shapes[shapes_index])
         shapes_index = (shapes_index + 1) % len(shapes)
         current = add_to_piece(current, (0, max_height + 4))
@@ -118,7 +60,7 @@ def part_2():
             cycle_start, prev_max_height = previous_starts[this_start_state]
             cycle_len = i - cycle_start
             cycle_height = max_height - prev_max_height
-            remaining_complete_cycles = (10**12 - i) // cycle_len
+            remaining_complete_cycles = (n - i) // cycle_len
             vertical_offset = cycle_height * remaining_complete_cycles
             max_height += vertical_offset
             occupied_spaces = {(space[0], space[1] + vertical_offset) for space in occupied_spaces}
@@ -164,9 +106,17 @@ def part_2():
                 current = lower
         i += 1
 
-    print(f"Height is {max_height}")
+    print(f"Height after {i} is {max_height}")
+
+
+def part_1():
+    let_n_pieces_fall(2022)
+
+
+def part_2():
+    let_n_pieces_fall(10**12)
 
 
 if __name__ == "__main__":
-    # part_1()
+    part_1()
     part_2()
