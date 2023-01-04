@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, NamedTuple
 import re
 
 Grid = List[List[str]]
@@ -11,16 +11,22 @@ class Facing(IntEnum):
     DOWN = 1
     LEFT = 2
     UP = 3
+    NOTSET = -1
+
+
+class Result(NamedTuple):
+    pos: CoordId
+    facing: Facing
 
 
 class Coord:
-    def __init__(self, right: CoordId, down: CoordId, left: CoordId, up: CoordId):
+    def __init__(self, right: Result, down: Result, left: Result, up: Result):
         self.right = right
         self.down = down
         self.left = left
         self.up = up
 
-    def go(self, facing: Facing) -> CoordId:
+    def go(self, facing: Facing) -> Result:
         if facing == Facing.RIGHT:
             return self.right
         elif facing == Facing.DOWN:
@@ -97,96 +103,90 @@ def part_1():
     for row_index, row in enumerate(grid):
         for col_index, entry in enumerate(row):
             if entry != " ":
-                positions: List[Tuple[int, int]] = [(-1, -1)] * 4  # r, d, l, u
+                positions: List[Result] = [Result((-1, -1), Facing.NOTSET)] * 4  # r, d, l, u
 
                 # Right
                 if (
                     is_valid_position(grid, row_index, col_index + 1)
                     and grid[row_index][col_index + 1] != " "
                 ):
-                    positions[0] = (row_index, col_index + 1)
+                    positions[0] = Result((row_index, col_index + 1), Facing.RIGHT)
                 else:
-                    positions[0] = (
-                        row_index,
-                        get_index_of_leftmost_coord(grid, row_index),
-                    )
+                    positions[0] = Result((row_index, get_index_of_leftmost_coord(grid, row_index)), Facing.RIGHT)
 
                 # Down
                 if (
                     is_valid_position(grid, row_index + 1, col_index)
                     and grid[row_index + 1][col_index] != " "
                 ):
-                    positions[1] = (row_index + 1, col_index)
+                    positions[1] = Result((row_index + 1, col_index), Facing.DOWN)
                 else:
-                    positions[1] = (
-                        get_index_of_highest_coord(grid, col_index),
-                        col_index,
-                    )
+                    positions[1] = Result((get_index_of_highest_coord(grid, col_index), col_index), Facing.DOWN)
 
                 # Left
                 if (
                     is_valid_position(grid, row_index, col_index - 1)
                     and grid[row_index][col_index - 1] != " "
                 ):
-                    positions[2] = (row_index, col_index - 1)
+                    positions[2] = Result((row_index, col_index - 1), Facing.LEFT)
                 else:
-                    positions[2] = (
-                        row_index,
-                        get_index_of_rightmost_coord(grid, row_index),
-                    )
+                    positions[2] = Result((row_index, get_index_of_rightmost_coord(grid, row_index)), Facing.LEFT)
 
                 # Up
                 if (
                     is_valid_position(grid, row_index - 1, col_index)
                     and grid[row_index - 1][col_index] != " "
                 ):
-                    positions[3] = (row_index - 1, col_index)
-                else:
-                    positions[3] = (
-                        get_index_of_lowest_coord(grid, col_index),
-                        col_index,
-                    )
 
-                for action, coord in enumerate(positions):
-                    i, j = coord
+                    positions[3] = Result((row_index - 1, col_index), Facing.UP)
+                else:
+                    positions[3] = Result((get_index_of_lowest_coord(grid, col_index), col_index), Facing.UP)
+
+                # Check each to ensure it doesn't lead into a blocker
+                for action, result in enumerate(positions):
+                    i, j = result.pos
                     if grid[i][j] == "#":
-                        positions[action] = (row_index, col_index)
+                        positions[action] = Result((row_index, col_index), result.facing)
 
                 coords[(row_index, col_index)] = Coord(*positions)
 
     directions = re.findall("\\D+|\\d+", directions_section)
 
-    facing = Facing.RIGHT
-    position: CoordId = (0, get_index_of_leftmost_coord(grid, 0))
+    current = Result((0, get_index_of_leftmost_coord(grid, 0)), Facing.RIGHT)
+    hist: Dict[CoordId, Facing] = {current.pos: current.facing}
 
-    # def disp():
-    #     for i, row in enumerate(grid):
-    #         s = ""
-    #         for j, entry in enumerate(row):
-    #             if (i, j) == position:
-    #                 if facing == Facing.RIGHT:
-    #                     s += ">"
-    #                 elif facing == Facing.DOWN:
-    #                     s += "v"
-    #                 elif facing == Facing.LEFT:
-    #                     s += "<"
-    #                 else:
-    #                     s += "^"
-    #             else:
-    #                 s += entry
-    #         print(s)
-    #     print()
+    def disp():
+        s = ""
+        for row_index, row in enumerate(grid):
+            for col_index, entry in enumerate(row):
+                if (pos := (row_index, col_index)) in hist:
+                    if hist[pos] == Facing.RIGHT:
+                        s += ">"
+                    elif hist[pos] == Facing.DOWN:
+                        s += "v"
+                    elif hist[pos] == Facing.LEFT:
+                        s += "<"
+                    elif hist[pos] == Facing.UP:
+                        s += "^"
+                else:
+                    s += entry
+            s += "\n"
+        print(s)
 
-    # disp()
     for action in directions:
         if action in "LR":
-            facing = get_turn_direction(action, facing)
+            current = Result(current.pos, get_turn_direction(action, current.facing))
+            hist[current.pos] = current.facing
         else:
             for _ in range(int(action)):
-                next_position = coords[position].go(facing)
-                position = next_position
-        # disp()
-    print(1000 * (position[0] + 1) + 4 * (position[1] + 1) + facing)
+                last = current.pos
+                current = coords[current.pos].go(current.facing)
+                hist[current.pos] = current.facing
+                if current.pos == last:
+                    break
+        disp()
+        continue
+    print(1000 * (current.pos[0] + 1) + 4 * (current.pos[1] + 1) + current.facing)
 
 
 def part_2():
