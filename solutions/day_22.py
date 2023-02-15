@@ -465,7 +465,7 @@ def do_traversal(mapping_func: Callable[[Grid], Dict[CoordId, Coord]]) -> int:
                 if current.pos == last:
                     break
         # disp()
-    return 1000 * (current.pos[0] + 1) + 4 * (current.pos[1] + 1) + current.facing
+    return 1000 * (current.pos.row + 1) + 4 * (current.pos.col + 1) + current.facing
 
 
 def part_1():
